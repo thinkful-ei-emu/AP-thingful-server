@@ -2,7 +2,7 @@ const knex = require("knex");
 const app = require("../src/app");
 const helpers = require("./test-helpers");
 
-describe.only(`Protected endpoints`, () => {
+describe(`Protected endpoints`, () => {
   let db;
 
   const { testUsers, testThings, testReviews } = helpers.makeThingsFixtures();
@@ -58,29 +58,21 @@ describe.only(`Protected endpoints`, () => {
           .expect(401, { error: `Missing bearer token` });
       });
 
-      it.skip(`responds 401 'Unauthorized reqest' when no credentials in token`, () => {
-        const userNoCreds = { user_name: "", password: "" };
+      it(`responds 401 'Unauthorized reqest' when invalid JWT secret`, () => {
+        const validUser = testUsers[0]
+        const invalidSecret = 'bad-secret'
         return endpoint.method(endpoint.path)
-          .set("Authorization", makeAuthHeader(userNoCreds))
+          .set("Authorization", helpers.makeAuthHeader(validUser, invalidSecret))
           .expect(401, { error: `Unauthorized request` });
       });
 
-      it.skip(`responds 401 'Unauthorized request' when invalid user`, () => {
-        const userInvalidCreds = { user_name: "user-not", password: "existy" };
+      it(`responds 401 'Unauthorized request' when sub in payload`, () => {
+        const invalidUser = { user_name: "user-not-existy", id: 1 };
         return endpoint.method(endpoint.path)
-          .set("Authorization", makeAuthHeader(userInvalidCreds))
+          .set("Authorization", helpers.makeAuthHeader(invalidUser))
           .expect(401, { error: `Unauthorized request` });
       });
 
-      it.skip(`responds 401 'Unauthorized request' when invalid password`, () => {
-        const userInvalidPass = {
-          user_name: testUsers[0].user_name,
-          password: "wrong"
-        };
-        return endpoint.method(endpoint.path)
-          .set("Authorization", makeAuthHeader(userInvalidPass))
-          .expect(401, { error: `Unauthorized request` });
-      });
     });
   });
 });
